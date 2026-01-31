@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Lightbulb } from 'lucide-react';
+import { ClipboardList, Lightbulb, LayoutList, LayoutGrid } from 'lucide-react';
 import DarkModeToggle from './components/DarkModeToggle';
-import TaskForm from './components/Taskform';
+import TaskForm from './components/TaskForm';
 import FilterBar from './components/FilterBar';
 import TaskList from './components/TaskList';
+import KanbanBoard from './components/KanbanBoard';
 import ProgressBar from './components/ProgressBar';
 import StatsCards from './components/StatsCards';
 import useDarkMode from './hooks/useDarkMode';
@@ -11,10 +12,26 @@ import useDarkMode from './hooks/useDarkMode';
 export default function TodoApp() {
   
   const [isDarkMode, toggleDarkMode] = useDarkMode();
+  
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem('viewMode');
+    return saved || 'list'; 
+  });
 
+  useEffect(() => {
+    localStorage.setItem('viewMode', viewMode);
+  }, [viewMode]);
+  
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem('tasks');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map(task => ({
+        ...task,
+        status: task.status || 'todo' 
+      }));
+    }
+    return [];
   });
 
   const [newTask, setNewTask] = useState({
@@ -22,7 +39,8 @@ export default function TodoApp() {
     description: '',
     category: '',
     priority: 'medium',
-    dueDate: ''
+    dueDate: '',
+    status: 'todo' 
   });
 
   const [filter, setFilter] = useState('all');
@@ -51,7 +69,7 @@ export default function TodoApp() {
       ...newTask,
       completed: false,
       createdAt: new Date().toISOString(),
-      order: tasks.length 
+      order: tasks.length
     };
 
     setTasks(prev => [task, ...prev]);
@@ -61,7 +79,8 @@ export default function TodoApp() {
       description: '',
       category: '',
       priority: 'medium',
-      dueDate: ''
+      dueDate: '',
+      status: 'todo'
     });
   };
 
@@ -75,6 +94,12 @@ export default function TodoApp() {
     setTasks(prev => prev.filter(task => task.id !== id));
   };
 
+  const updateTask = (updatedTask) => {
+    setTasks(prev => prev.map(task =>
+      task.id === updatedTask.id ? updatedTask : task
+    ));
+  };
+
   const startEdit = (task) => {
     setEditingId(task.id);
     setNewTask({
@@ -82,7 +107,8 @@ export default function TodoApp() {
       description: task.description,
       category: task.category,
       priority: task.priority,
-      dueDate: task.dueDate
+      dueDate: task.dueDate,
+      status: task.status || 'todo'
     });
   };
 
@@ -101,7 +127,8 @@ export default function TodoApp() {
       description: '',
       category: '',
       priority: 'medium',
-      dueDate: ''
+      dueDate: '',
+      status: 'todo'
     });
   };
 
@@ -112,7 +139,8 @@ export default function TodoApp() {
       description: '',
       category: '',
       priority: 'medium',
-      dueDate: ''
+      dueDate: '',
+      status: 'todo'
     });
   };
 
@@ -180,7 +208,7 @@ export default function TodoApp() {
 
   return (
     <div className={`min-h-screen ${themeClasses.background} py-8 px-4 transition-colors duration-300`}>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         <div className="text-center mb-8 relative">
           
@@ -200,11 +228,47 @@ export default function TodoApp() {
           </p>
         </div>
 
+        <div className="mb-6 flex justify-center">
+          <div className={`inline-flex rounded-lg p-1 ${
+            isDarkMode ? 'bg-slate-800' : 'bg-gray-200'
+          }`}>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all ${
+                viewMode === 'list'
+                  ? isDarkMode
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-900 shadow'
+                  : isDarkMode
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <LayoutList className="w-4 h-4" />
+              List View
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`px-4 py-2 rounded-md flex items-center gap-2 transition-all ${
+                viewMode === 'kanban'
+                  ? isDarkMode
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-900 shadow'
+                  : isDarkMode
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Kanban View
+            </button>
+          </div>
+        </div>
+
         <ProgressBar 
           stats={stats} 
           isDarkMode={isDarkMode} 
         />
-        <br/>
 
         <StatsCards 
           stats={stats} 
@@ -212,44 +276,75 @@ export default function TodoApp() {
           themeClasses={themeClasses}
         />
 
-        <div className={`${themeClasses.card} rounded-xl shadow-lg p-6 mb-6 transition-colors duration-300`}>
-          
-          <TaskForm
-            newTask={newTask}
-            editingId={editingId}
-            handleInputChange={handleInputChange}
-            addTask={addTask}
-            saveEdit={saveEdit}
-            cancelEdit={cancelEdit}
-            isDarkMode={isDarkMode}
-            themeClasses={themeClasses}
-          />
-          <FilterBar
-            filter={filter}
-            setFilter={setFilter}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            isDarkMode={isDarkMode}
-            themeClasses={themeClasses}
-          />
+        {viewMode === 'list' ? (
+          <div className={`${themeClasses.card} rounded-xl shadow-lg p-6 mb-6 transition-colors duration-300`}>
+            
+            <TaskForm
+              newTask={newTask}
+              editingId={editingId}
+              handleInputChange={handleInputChange}
+              addTask={addTask}
+              saveEdit={saveEdit}
+              cancelEdit={cancelEdit}
+              isDarkMode={isDarkMode}
+              themeClasses={themeClasses}
+            />
 
-          <TaskList
-            tasks={getFilteredTasks()}
-            toggleComplete={toggleComplete}
-            deleteTask={deleteTask}
-            startEdit={startEdit}
-            reorderTasks={reorderTasks}
-            searchQuery={searchQuery}
-            isDarkMode={isDarkMode}
-            themeClasses={themeClasses}
-          />
-        </div>
+            <FilterBar
+              filter={filter}
+              setFilter={setFilter}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              isDarkMode={isDarkMode}
+              themeClasses={themeClasses}
+            />
+
+            <TaskList
+              tasks={getFilteredTasks()}
+              toggleComplete={toggleComplete}
+              deleteTask={deleteTask}
+              startEdit={startEdit}
+              reorderTasks={reorderTasks}
+              searchQuery={searchQuery}
+              isDarkMode={isDarkMode}
+              themeClasses={themeClasses}
+            />
+          </div>
+        ) : (
+          <div className="mb-6">
+            <div className={`${themeClasses.card} rounded-xl shadow-lg p-6 mb-6 transition-colors duration-300`}>
+              <TaskForm
+                newTask={newTask}
+                editingId={editingId}
+                handleInputChange={handleInputChange}
+                addTask={addTask}
+                saveEdit={saveEdit}
+                cancelEdit={cancelEdit}
+                isDarkMode={isDarkMode}
+                themeClasses={themeClasses}
+              />
+            </div>
+
+            <KanbanBoard
+              tasks={tasks}
+              addTask={addTask}
+              updateTask={updateTask}
+              deleteTask={deleteTask}
+              isDarkMode={isDarkMode}
+              themeClasses={themeClasses}
+            />
+          </div>
+        )}
 
         <div className={`text-center ${themeClasses.textSecondary} text-sm flex items-center justify-center gap-2`}>
           <Lightbulb className="w-4 h-4" />
-          <p>Tip: Drag tasks to reorder • Tasks & theme saved automatically</p>
+          <p>
+            {viewMode === 'list' 
+              ? 'Tip: Drag tasks to reorder • Switch to Kanban view for column-based workflow' 
+              : 'Tip: Drag cards between columns to update status • Switch to List view for detailed management'}
+          </p>
         </div>
       </div>
     </div>
