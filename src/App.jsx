@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClipboardList, Lightbulb, LayoutList, LayoutGrid } from 'lucide-react';
 import DarkModeToggle from './components/DarkModeToggle';
+import NotificationCenter from './components/Notificationcenter';
 import TaskForm from './components/TaskForm';
 import FilterBar from './components/FilterBar';
 import TaskList from './components/TaskList';
@@ -144,19 +145,6 @@ export default function TodoApp() {
     });
   };
 
-  const reorderTasks = (startIndex, endIndex) => {
-    const result = Array.from(tasks);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-    
-    const reorderedTasks = result.map((task, index) => ({
-      ...task,
-      order: index
-    }));
-    
-    setTasks(reorderedTasks);
-  };
-
   const getFilteredTasks = () => {
     let filtered = [...tasks];
 
@@ -212,10 +200,18 @@ export default function TodoApp() {
         
         <div className="text-center mb-8 relative">
           
-          <DarkModeToggle 
-            isDarkMode={isDarkMode} 
-            toggleDarkMode={toggleDarkMode} 
-          />
+          <div className="absolute right-0 top-0 flex items-center gap-2">
+            <NotificationCenter 
+              tasks={tasks}
+              isDarkMode={isDarkMode}
+              themeClasses={themeClasses}
+            />
+            
+            <DarkModeToggle 
+              isDarkMode={isDarkMode} 
+              toggleDarkMode={toggleDarkMode} 
+            />
+          </div>
 
           <div className="flex items-center justify-center gap-3 mb-2">
             <ClipboardList className={`w-10 h-10 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -306,7 +302,6 @@ export default function TodoApp() {
               toggleComplete={toggleComplete}
               deleteTask={deleteTask}
               startEdit={startEdit}
-              reorderTasks={reorderTasks}
               searchQuery={searchQuery}
               isDarkMode={isDarkMode}
               themeClasses={themeClasses}
@@ -342,8 +337,8 @@ export default function TodoApp() {
           <Lightbulb className="w-4 h-4" />
           <p>
             {viewMode === 'list' 
-              ? 'Tip: Drag tasks to reorder • Switch to Kanban view for column-based workflow' 
-              : 'Tip: Drag cards between columns to update status • Switch to List view for detailed management'}
+              ? 'Tip: Switch to Kanban view for drag & drop workflow • Check notifications for upcoming deadlines' 
+              : 'Tip: Drag cards between columns to update status • Check notifications for upcoming deadlines'}
           </p>
         </div>
       </div>
