@@ -199,14 +199,15 @@ export default function TodoApp() {
       <div className="max-w-7xl mx-auto">
         
         <div className="text-center mb-8 relative">
-          
-          <div className="absolute right-0 top-0 flex items-center gap-2">
+          <div className="absolute right-16 top-4 z-50">
             <NotificationCenter 
               tasks={tasks}
               isDarkMode={isDarkMode}
               themeClasses={themeClasses}
             />
-            
+          </div>
+
+          <div className="absolute right-4 top-4 z-50">
             <DarkModeToggle 
               isDarkMode={isDarkMode} 
               toggleDarkMode={toggleDarkMode} 

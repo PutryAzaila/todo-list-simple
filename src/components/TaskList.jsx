@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Inbox } from 'lucide-react';
 import TaskItem from './TaskItem';
 
@@ -7,44 +7,10 @@ export default function TaskList({
   toggleComplete, 
   deleteTask, 
   startEdit,
-  reorderTasks,
   searchQuery,
   isDarkMode,
   themeClasses 
 }) {
-  
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [draggedOverIndex, setDraggedOverIndex] = useState(null);
-
-  const handleDragStart = (index) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e, index) => {
-    e.preventDefault();
-    setDraggedOverIndex(index);
-  };
-
-  const handleDrop = (e, dropIndex) => {
-    e.preventDefault();
-    
-    if (draggedIndex === null) return;
-    if (draggedIndex === dropIndex) return;
-
-    reorderTasks(draggedIndex, dropIndex);
-
-    setDraggedIndex(null);
-    setDraggedOverIndex(null);
-  };
-
-  const handleDragLeave = () => {
-    setDraggedOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDraggedOverIndex(null);
-  };
 
   if (tasks.length === 0) {
     return (
@@ -74,13 +40,6 @@ export default function TaskList({
           toggleComplete={toggleComplete}
           deleteTask={deleteTask}
           startEdit={startEdit}
-          onDragStart={() => handleDragStart(index)}
-          onDragOver={(e) => handleDragOver(e, index)}
-          onDrop={(e) => handleDrop(e, index)}
-          onDragLeave={handleDragLeave}
-          onDragEnd={handleDragEnd}
-          isDragging={draggedIndex === index}
-          isDraggedOver={draggedOverIndex === index}
           isDarkMode={isDarkMode}
           themeClasses={themeClasses}
         />

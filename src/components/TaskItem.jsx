@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, Check, Tag, Calendar, GripVertical } from 'lucide-react';
+import { Edit2, Trash2, Check, Tag, Calendar } from 'lucide-react';
 
 export default function TaskItem({ 
   task, 
@@ -7,13 +7,6 @@ export default function TaskItem({
   toggleComplete, 
   deleteTask, 
   startEdit,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragLeave,
-  onDragEnd,
-  isDragging,
-  isDraggedOver,
   isDarkMode,
   themeClasses 
 }) {
@@ -56,31 +49,13 @@ export default function TaskItem({
         ? 'bg-slate-700/50 border-slate-600'
         : 'bg-white border-gray-200'
     }
-    ${isDragging ? 'opacity-50 scale-95 rotate-2' : 'hover:shadow-lg hover:scale-[1.01]'}
-    ${isDraggedOver ? 'border-blue-500 border-dashed scale-105' : ''}
-    cursor-move
+    hover:shadow-lg hover:scale-[1.01]
   `.trim();
 
   return (
-    <div
-      className={cardClasses}
-      draggable={!task.completed} 
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragLeave={onDragLeave}
-      onDragEnd={onDragEnd}
-    >
+    <div className={cardClasses}>
       <div className="flex items-start gap-3">
         
-        <div className={`mt-1 ${
-          task.completed 
-            ? 'opacity-0 pointer-events-none' 
-            : isDarkMode ? 'text-slate-500' : 'text-gray-400'
-        }`}>
-          <GripVertical className="w-5 h-5" />
-        </div>
-
         <button
           onClick={() => toggleComplete(task.id)}
           className={`mt-1 w-6 h-6 rounded border-2 flex items-center justify-center transition-all duration-300 ${
